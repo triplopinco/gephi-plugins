@@ -24,7 +24,7 @@ public class TreeLayoutBuilder implements LayoutBuilder {
 
             @Override
             public String getDescription() {
-                return "Tree Layout Description";
+                return null;
             }
 
             @Override
