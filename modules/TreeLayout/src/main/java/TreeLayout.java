@@ -24,7 +24,7 @@ public class TreeLayout implements Layout {
     //Parameters
     private int hspace;
     private int vspace;
-
+    private MyNode defaultAncestor;
     public TreeLayout(TreeLayoutBuilder bld) {
         builder = bld;
     }
@@ -45,39 +45,13 @@ public class TreeLayout implements Layout {
         Graph graph = graphModel.getGraphVisible();
         graph.readLock();
         //
-        root.setX(0.f);root.setY(1000.0f);
-        ArrayList<Node> todo = new ArrayList<Node>();
-        todo.add(root);
-        float hdist=(float) hspace;
-        //
-        while(todo.size()>0) {
-            ArrayList<Node> nexttodo = new ArrayList<Node>();
-            for(Node current : todo) {
-                Node[] childs = getChilds(graph,current);
-                if(childs.length==0) continue;
-                if(childs.length==1) {
-                    childs[0].setX(current.x());
-                    childs[0].setY(current.y()-((float) vspace));
-                    nexttodo.add(childs[0]);       
-                } else {
-                    float f1 = hdist*(getChilds(graph,childs[0]).length-1);
-                    float max=-1.0f;
-                    for(int i=1;i<childs.length;i++) {
-                        float f2 = hdist*(getChilds(graph,childs[i]).length-1);
-                        if((f1+f2)/2.0f+hdist > max) max=(f1+f2)/2.0f + hdist;
-                        f1 = f2;
-                    }
-                    float dx=max/((float) childs.length-1);
-                    for(int i=0;i<childs.length;i++) {
-                        childs[i].setX(current.x()-max/2.0f+dx*i);
-                        childs[i].setY(current.y()-((float) vspace));
-                        nexttodo.add(childs[i]);
-                    }
-                }
-            }
-            todo=nexttodo;
-        }
+        MyNode myroot=new MyNode(root);
+        expand(graph,myroot);
+        firstWalk(myroot);
+        secondWalk(myroot,-myroot.prelim);
+        //root.setX(0.f);root.setY(1000.0f);
         graph.readUnlock();
+        executing = false;
     }
 
     @Override
@@ -206,5 +180,92 @@ public class TreeLayout implements Layout {
         }
         return childs.toArray(new Node[0]);
     }
-
+    private void expand(Graph g, MyNode mn) {
+       Node[] childs = getChilds(g,mn.node);
+       mn.childs = new MyNode[childs.length];
+       for(int i=0;i<childs.length;i++) {
+           MyNode x = new MyNode(childs[i]);
+           mn.childs[i]=x;
+           x.parent=mn;
+           if(i>0) x.leftSib=mn.childs[i-1];
+           x.level=mn.level+1;
+           expand(g,x);
+       }
+    }
+    private void firstWalk(MyNode v) {
+        if(v.childs.length==0) {
+            v.prelim=0.0f;
+            if(v.leftSib!=null) v.prelim = v.leftSib.prelim+hspace;
+        } else {
+            defaultAncestor = v.childs[0];
+            for(int i=0;i<v.childs.length;i++) {
+                MyNode w = v.childs[i];
+                firstWalk(w);
+                apportion(w);
+            }
+            executeShifts(v);
+            float midpoint=0.5f*(
+                   v.childs[0].prelim + v.childs[v.childs.length-1].prelim);
+            if(v.leftSib!=null) {
+                v.prelim = v.leftSib.prelim + hspace;
+                v.mod = v.prelim - midpoint;
+            } else {
+                v.prelim = midpoint;
+            }
+        }
+    }
+    private void secondWalk(MyNode v,float pr) {
+    }
+    private void apportion(MyNode v) {
+        if(v.leftSib != null) {
+            MyNode vpi = v;
+            MyNode vpo = v;
+            MyNode vmi = v.leftSib;
+            MyNode vmo = vpi.parent.childs[0];
+            float spi=vpi.mod;
+            float spo=vpo.mod;
+            float smi=vmi.mod;
+            float smo=vmo.mod;
+            while(nextRight(vmi)!=null && nextLeft(vpi)!=null) {
+                vmi = nextRight(vmi);
+                vpi = nextLeft(vpi);
+                vmo = nextLeft(vmo);
+                vpo = nextRight(vpo);
+                vpo.ancestor = v;
+                float shift=(vmi.prelim+smi) - (vpi.prelim+spi) +  hspace;
+                if(shift>0) {
+                    moveSubTree(ancestor(vmi,v),v,shift);
+                    spi = spi + shift;
+                    spo = spo + shift;
+                }
+                smi = smi + vmi.mod;
+                spi = spi + vpi.mod;
+                smo = smo + vmo.mod;
+                spo = spo + vpo.mod;
+            }
+            if(nextRight(vmi)!=null && nextRight(vpo)==null) {
+                vpo.thread=nextRight(vmi);
+                vpo.mod=vpo.mod+smi-spo;
+            }
+            if(nextLeft(vpi)!=null && nextLeft(vmo)==null) {
+                vmo.thread=nextLeft(vpi);
+                vmo.mod=vmo.mod+spi-smo;
+                defaultAncestor=v;
+            }
+        }
+    }
+    private void executeShifts(MyNode v) {
+    }
+    private MyNode nextRight(MyNode v) {
+        return null;
+    }
+    private MyNode nextLeft(MyNode v) {
+        return null;
+    }
+    private void moveSubTree(MyNode wm, MyNode wp, float shift) {
+    }
+    private MyNode ancestor(MyNode vmi,MyNode v) {
+        return null;
+    }
 }
+

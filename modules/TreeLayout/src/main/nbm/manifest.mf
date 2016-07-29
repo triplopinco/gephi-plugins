@@ -1,5 +1,7 @@
 Manifest-Version: 1.0
 OpenIDE-Module-Name: Tree Layout
 OpenIDE-Module-Short-Description: Layout e graph tree in a proper way
-OpenIDE-Module-Long-Description: If the graph of a network is a directed rooted tree, this plugin display the graph in the standard way, i.e. with the root in the top centerd position and the childs descending
+OpenIDE-Module-Long-Description: If the graph of a network is a directed rooted tree, 
+ this plugin display the graph in the standard way, i.e. with the root in the top centerd position and the childs descending. 
+ The algorithm used is described in Buchheim C, Jünger M, Leipert S. Drawing rooted trees in linear time. Software—Practice and Experience 2006; 36(6):651–665
 OpenIDE-Module-Display-Category: Layout
