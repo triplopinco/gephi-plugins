@@ -111,7 +111,7 @@ public class TreeLayout implements Layout {
         vspace = x;
     }
     void setPosition(MyNode n) {
-        System.out.println(n.node.getLabel()+" "+n.x+" "+n.y);
+        //System.out.println(n.node.getLabel()+" "+n.x+" "+n.y);
         n.node.setX(n.x*hspace);
         n.node.setY(n.y*vspace);
         for(int i=0;i<n.childs.length;i++) {
