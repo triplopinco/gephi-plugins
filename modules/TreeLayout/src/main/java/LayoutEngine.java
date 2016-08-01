@@ -5,14 +5,18 @@ import org.gephi.layout.spi.*;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
+/** The method doLayout() of this class implements the algorithm describe in
+*   Buchheim C, Jünger M, Leipert S.
+*   "Drawing rooted trees in linear time"
+*   Software—Practice and Experience 2006; 36(6):651–665
+*/
 public class LayoutEngine {
-    final static float TOP=1000.0f;
     private GraphModel graphModel;
     public MyNode myroot; // The root of the tree
-    private int depth; // Depth of the tree
     float distance=1.0f;
     //
     public LayoutEngine() {
+        myroot=null;
     }
     //
     public void setGraphModel(GraphModel gm) {
@@ -21,6 +25,9 @@ public class LayoutEngine {
     //
     public void doLayout() {
         Graph graph = graphModel.getGraph();
+        if(myroot==null) {
+            if(!isTree()) return;
+        }
         expand(graph,myroot);
         firstWalk(myroot);
         secondWalk(myroot,-myroot.prelim);
@@ -37,7 +44,6 @@ public class LayoutEngine {
         }
         Node[] nodes = graph.getNodes().toArray();
         Node root=null;
-        depth=0;
         for(int i=0;i<nodes.length;i++) {
             Node node=nodes[i];
             //Salgo su alla ricerca del root
@@ -64,7 +70,6 @@ public class LayoutEngine {
                     return false;
                 }
             }
-            if(l>depth) depth=l;
         }
         myroot=new MyNode(root);
         return true;
